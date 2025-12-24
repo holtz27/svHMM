@@ -1,0 +1,4 @@
+# Localiza as bibliotecas do RcppParallel
+PKG_LIBS = $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "RcppParallel::RcppParallelLibs()") \
+           $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "RcppGSL::LdFlags()") \
+           $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
