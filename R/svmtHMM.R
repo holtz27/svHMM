@@ -137,15 +137,25 @@ svmt.sim = function(mu,phi,sigma,nu,beta,y0,g_dim){
 #' Fit SV-t HMM model
 #'
 #' @export
-svmtHMM <- function(y, y0=0.2, theta_init, m, gmax, nIS=1e3){
+svmtHMM <- function(y, y0=0.2, theta_init=NULL, m, gmax, nIS=1e3){
 
   time <- Sys.time()
 
-  mu0    <- theta_init$mu0
-  phi0   <- theta_init$phi0
-  sigma0 <- theta_init$sigma0
-  beta0  <- theta_init$beta0
-  nu0    <- theta_init$nu0
+  if(is.null(theta_init)){
+
+    mu0    <- log(var(y))
+    phi0   <- 0.98
+    sigma0 <- 0.15
+    beta0  <- c(mean(y), 0, -0.05)
+    nu0    <- 5
+
+  }else{
+    mu0    <- theta_init$mu0
+    phi0   <- theta_init$phi0
+    sigma0 <- theta_init$sigma0
+    beta0  <- theta_init$beta0
+    nu0    <- theta_init$nu0
+  }
 
   ##########################################################################
   # Optimization
