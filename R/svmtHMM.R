@@ -339,4 +339,76 @@ logvol.svmtHMM <- function(object, plot=FALSE, ...) {
   return(lv)
 }
 
+#' @export
+forecast <- function(object, ...) {
+  UseMethod("forecast")
+}
+
+#' Forecast from a svmtHMM object
+#'
+#' @param object An object of class "svmtHMM"
+#' @param xf Grid of values for predictive density
+#' @param h Forecast horizon
+#' @param ... Not used
+#'
+#' @export
+forecast.svmtHMM <- function(object, xf, h=1, ...){
+
+  x     <- object$y
+  y0    <- object$y0
+  p     <- summary(fit)[,1]
+  m     <- object$m
+  gbmax <- object$gmax
+
+  n <- length(x)
+  yy <- c(y0, x[1:(n - 1)])
+
+  nxf <- length(xf)
+  dxf <- matrix(0, nrow = h, ncol = nxf)
+
+  ####################### Gamma
+  K  <- m + 1
+  gb <- seq(-gbmax, gbmax, length = K)
+  g  <- 0.5 * (gb[-1] + gb[-K])
+  beg <- exp(g / 2)
+
+  gamma <- matrix(0, m, m)
+  E <- p[4] + p[5] * (g - p[4])
+  intlen <- gb[2] - gb[1]
+
+  for (i in 1:m) {
+    goo <- dnorm(g, E[i], p[6]) * intlen
+    gamma[i, ] <- goo / sum(goo)
+  }
+  ####################### Filter
+  delta <- dnorm(g, p[4], p[6] / sqrt(1 - p[5]^2)) * intlen
+  delta <- delta / sum(delta)
+
+  foo <- delta * 1 / beg *
+    dt((x[1] - p[1] - p[2] * yy[1] - p[3] * beg^2) / beg, p[7])
+
+  foo <- foo / sum(foo)
+
+  for (i in 2:n) {
+    foo <- foo %*% gamma *
+      1 / beg *
+      dt((x[i] - p[1] - p[2] * yy[i] - p[3] * beg^2) / beg, p[7])
+
+    foo <- foo / sum(foo)
+  }
+
+  ####################### Forecast
+  xfyy <- x[length(x)]
+
+  for (i in 1:h) {
+    foo <- foo %*% gamma
+    for (j in 1:m) {
+      dxf[i, ] <- dxf[i, ] +
+        foo[j] * 1 / beg[j] *
+        dt((xf - p[1] - p[2] * xfyy - p[3] * beg[j]^2) / beg[j], p[7])
+    }
+  }
+
+  return(dxf)
+}
 
