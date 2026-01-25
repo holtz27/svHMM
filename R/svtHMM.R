@@ -1,4 +1,3 @@
-
 svt.pn2pw = function(mu, phi, sigma, nu){
 
   lmu = mu
@@ -95,7 +94,7 @@ svt.map <- function(y, m, parvect0, y0, gmax){
   mode <- mod$par
   conv = mod$convergence
   return(list(mode=mode,
-              lpostsvvg=-mod$value,
+              lpostsvt=-mod$value,
               hessian=mod$hessian,
               conv = conv))
 }
@@ -119,106 +118,104 @@ svt.sim <- function(mu,phi,sigma,nu,g_dim){
 }
 
 #' @export
-svtHMM = function(y, theta_init, m, gmax, nIS=1e3){
+svtHMM = function(y, m, gmax, theta_init=NULL, nIS=1e3){
 
-  mu0=theta_init$mu0
-  phi0=theta_init$phi0
-  sigma0=theta_init$sigma0
-  nu0=theta_init$nu0
+  time_start = Sys.time()
 
-  time = Sys.time()
-  ############################################################################
-  # Optimize
-  eigenvalues = rep(0, 7)
+  if(is.null(theta_init)){
+    mu0     = log(var(y))
+    phi0    = 0.98
+    sigma0  = 0.15
+    nu0 = 10
+  }else{
+    # Extracting initial parameters
+    mu0     = theta_init$mu0
+    phi0    = theta_init$phi0
+    sigma0  = theta_init$sigma0
+    nu0  = theta_init$nu0
+  }
+
+  # ----------------------------------------------------------------------------
+  # STEP 1: Numerical Optimization (MAP Estimation)
+  # ----------------------------------------------------------------------------
+  eigenvalues = rep(0, 4)
   cont = 0
   parvect0 = svt.pn2pw(mu0, phi0, sigma0, nu0)
-  cat("Optimization step...\n")
-  optim_time <- Sys.time()
-  while( any(eigenvalues <= 0) && cont<5 ){
 
+  cat("\n[1/2] Starting numerical optimization (MAP)...\n")
+  optim_time_start <- Sys.time()
+
+  while( any(eigenvalues <= 0) && cont<5 ){
     optim_res = svt.map(y=y,m=m, parvect0=parvect0, gmax=gmax)
     H1 = signif(solve(optim_res$hessian), 6)
     eigenvalues = eigen(H1, only.values=TRUE)$values
     parvect0 = optim_res$mode
     cont = cont + 1
-
   }
-  optim_time <- as.numeric(Sys.time() - optim_time, units = "mins")
-  cat("Done. Elapsed time:", optim_time, "min\n")
-  ############################################################################
-  cat("\nImportance Sampling step!\n")
-  is_time <- Sys.time()
-  # Test if H1 is positive definite
-  if(any(eigenvalues <= 0)) stop('Hessian is not positive definite')
-  k = -optim_res$lpostsvvg
+
+  if(any(eigenvalues <= 0)){
+    cat("\n")
+    stop('Error: Hessian matrix is not positive definite after 5 attempts. Check initial values.')
+  }
+
+  optim_duration <- as.numeric(Sys.time() - optim_time_start, units = "mins")
+  cat(sprintf("      Optimization completed in %.2f min (%d iterations).\n", optim_duration, cont))
+  # ----------------------------------------------------------------------------
+  # STEP 2: Importance Sampling
+  # ----------------------------------------------------------------------------
+  cat(sprintf("\n[2/2] Starting Importance Sampling (n = %d)...\n", nIS))
+  is_time_start <- Sys.time()
+
+  k = -optim_res$lpostsvt
   map = optim_res$mode
   ##########################################################################
-  # Weigths Evaluation
-  nIS=1e3
-  X=mvtnorm::rmvnorm(nIS, map, H1)
-  Weigth=array(0,dim=c(nIS,1))
-  largura=40
-  ultimo_print=-5 # garante que 0% seja impresso
+  # Proposal Sampling (Multivariate Normal)
+  X = mvtnorm::rmvnorm(nIS, map, H1)
+  Weigth = numeric(nIS)
+
+  largura = 40
+  ultimo_print = -1
+
   for(j in 1:nIS){
-    #############################
-    progresso=j/nIS
-    pct=floor(progresso*100)
+    Weigth[j]=exp(k
+                  -svt.posterior(parvect=X[j,],y=y,m=m,gmax=gmax)
+                  -mvtnorm::dmvnorm(X[j,],mean=map,sigma=H1,log=TRUE)
+                  )
+    # Progress bar logic
+    progresso = j / nIS
+    pct = floor(progresso * 100)
     if (pct %% 5 == 0 && pct != ultimo_print || j == nIS){
       preenchido = round(largura * progresso)
-      barra = paste0( "[", paste(rep("=", preenchido), collapse = ""),
-                      paste(rep(" ", largura - preenchido), collapse = ""), "]" )
-      cat(sprintf("\r%s %3.0f%%", barra, pct))
-      ultimo_print=pct
+      barra = paste0("[", paste(rep("=", preenchido), collapse = ""),
+                     paste(rep(" ", largura - preenchido), collapse = ""), "]")
+      cat(sprintf("\r      Progress: %s %3.0f%%", barra, pct))
+      ultimo_print = pct
     }
-    Sys.sleep(0.02)
-    #############################
-    Weigth[j,1]=exp(k
-                    -svt.posterior(parvect=X[j,],y=y,m=m,gmax=gmax)
-                    -mvtnorm::dmvnorm(X[j,],mean=map,sigma=H1,log=TRUE)
-                    )
   }
-  s=sum(Weigth)
+
+  # Normalize Weigths
+  s = sum(Weigth)
   if((s != 0) && !is.nan(s)){
-    Weigth=Weigth/s
-  }else{
-    stop('Error normalize constante weigths!')
+    Weigth = Weigth / s
+  } else {
+    cat("\n")
+    stop('Critical Error: Failed to normalize Weigths (Sum is zero or NaN).')
   }
-  #times=as.numeric(Sys.time()-time, units='mins')
-  ### Resample
-  indx=sample(1:nIS, prob=Weigth, replace=TRUE)
-  X=X[indx,]
-  Weigth=rep(1/nIS, nIS)
 
+  # Resampling
+  indx = sample(1:nIS, prob=Weigth, replace=TRUE)
+  X = X[indx, ]
+  Weigth = rep(1/nIS, nIS)
 
-  is_time <- as.numeric(Sys.time() - is_time, units = "mins")
-  cat('\n', "Done. Elapsed time:", is_time, "min\n")
+  is_duration <- as.numeric(Sys.time() - is_time_start, units = "mins")
+  cat(sprintf("\n      Sampling completed in %.2f min.\n", is_duration))
 
-  times <- as.numeric(Sys.time() - time, units = "mins")
+  # ----------------------------------------------------------------------------
+  # Finalization
+  # ----------------------------------------------------------------------------
+  total_time <- as.numeric(Sys.time() - time_start, units = "mins")
+  cat(sprintf("\nProcess completed successfully! Total elapsed time: %.2f min.\n\n", total_time))
 
-  ### Pareto Smooth
-  #psis=loo::psis(log(Weigth), r_eff=Results$ess)
-  #Weigth2=exp(psis$log_weights)
-  #Weigth2=Weigth2/sum(Weigth2)
-  #Results=ISdiag(Weigth=Weigth2, X=X)
-  #Results=ISdiag(Weigth=Weigth, X=X, normal=FALSE, p=svt.pw2pn, svm=FALSE)
-
-  ### -log p(y|\theta)
-  # DIC
-  #theta_hat=apply(X, 2, mean)
-  #D=2*svt.mllk(parvect=theta_hat,y=y,m=m,gmax=gmax)
-
-  # Evaluating \bar{D(\theta)}
-  #Dbar=0
-  #for(j in 1:nIS){
-  #  pv=X[j,]
-  #  Dbar=Dbar+Weigth[j]*svt.mllk(parvect=pv,y=y,m=m,gmax=gmax)
-  #}
-  #Dbar=2*Dbar
-  #pd=Dbar-D
-  #DIC=D+2*pd
-
-  # Log Predictive Score
-  #LPS=0.5*D/length(y)
   structure(
     list(
       Weigth=Weigth,
@@ -226,7 +223,7 @@ svtHMM = function(y, theta_init, m, gmax, nIS=1e3){
       y=y,
       m=m,
       gmax=gmax,
-      times=times,
+      times=total_time,
       call=match.call()
     ),
     class = "svtHMM"
@@ -291,7 +288,7 @@ logvol.svtHMM <- function(object, plot=FALSE, ...) {
   # Transform parameters from working space to natural space
   Thetas <- t(apply(X = X, MARGIN = 1, FUN = svt.pw2pn))
 
-  # Weighted posterior mean
+  # Weigthed posterior mean
   wThetas <- apply(X = Thetas, MARGIN = 2, FUN = "*", Weigth)
   theta_hat <- apply(X = wThetas, MARGIN = 2, sum)
 

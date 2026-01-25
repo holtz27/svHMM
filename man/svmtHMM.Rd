@@ -4,7 +4,7 @@
 \alias{svmtHMM}
 \title{Fit SV-t HMM model}
 \usage{
-svmtHMM(y, y0 = 0.2, theta_init, m, gmax, nIS = 1000)
+svmtHMM(y, y0 = 0.2, m, gmax, theta_init = NULL, nIS = 1000)
 }
 \description{
 Fit SV-t HMM model
