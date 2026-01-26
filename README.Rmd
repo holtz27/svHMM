@@ -1,54 +1,57 @@
+# svHMM
+
+**svHMM** implements fast approximate Bayesian inference for **stochastic volatility in mean (SVM) models with heavy-tailed distributions**, using **Hidden Markov Model (HMM)** approximations.
+
+The package is designed for efficient estimation of stochastic volatility models where exact Bayesian inference is computationally expensive. It relies on C++ implementations via **Rcpp**, **RcppParallel**, and the **GNU Scientific Library (GSL)**.
+
 ---
-output: github_document
+
+## Motivation
+
+Bayesian inference for stochastic volatility in mean models with heavy-tailed errors typically requires computationally intensive MCMC methods.  
+The `svHMM` package provides a **fast and scalable alternative**, approximating latent volatility dynamics using Hidden Markov Models, enabling:
+
+- Fast approximate posterior inference  
+- Scalability to large time series  
+- Robustness to heavy-tailed observations  
+
+The methodology is based on the paper:
+
+> **Stochastic Volatility in Mean Models with Heavy Tails:  
+> A Fast Approximate Bayesian Inference Using Hidden Markov Models**
+
 ---
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
+## Features
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
-)
-```
+- Approximate Bayesian inference for stochastic volatility in mean models
+- Support for heavy-tailed distributions (e.g. Student-t, Variance Gamma)
+- Hidden Markov Model approximation of latent volatility
+- Efficient C++ backend via Rcpp and GSL
+- Parallel computation support
+- Designed for simulation studies and empirical financial applications
 
-# holtz
-
-<!-- badges: start -->
-<!-- badges: end -->
-
-The goal of holtz is to ...
+---
 
 ## Installation
 
-You can install the development version of holtz like so:
+### Development version (GitHub)
 
-``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
-```
+# install.packages("remotes")
+remotes::install_github("https://github.com/holtz27/svHMM.git")
 
-## Example
+### On Ubuntu:
+sudo apt-get install libgsl-dev
 
-This is a basic example which shows you how to solve a common problem:
+library(svHMM)
 
-```{r example}
-library(holtz)
-## basic example code
-```
+# Example: fit an SVM-HMM model
+fit <- svmtHMM(
+  y = returns,
+  m = 200,
+  gmax = 5
+)
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+summary(fit)
 
-```{r cars}
-summary(cars)
-```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this.
-
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
-```
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.

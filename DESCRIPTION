@@ -1,12 +1,13 @@
-Package: holtz
+Package: svHMM
 Type: Package
-Title: Pacote para Cálculo de Densidades Paralelizadas com Rcpp e GSL
+Title: Fast Approximate Bayesian Inference for Stochastic Volatility Models Using Hidden Markov Models
 Version: 0.1.0
-Author: Seu Nome <seu.email@exemplo.com>
-Maintainer: Seu Nome <seu.email@exemplo.com>
-Description: Este pacote fornece implementações eficientes e paralelizadas de 
-    diversas funções de densidade, como Variance Gamma e t de Student, 
-    utilizando Rcpp, RcppParallel e a biblioteca GSL.
+Author: Bruno E. Holtz <brunoeholtz@gmail.com>
+Maintainer: Bruno E. Holtz <brunoeholtz@gmail.com>
+Description: Implements fast approximate Bayesian inference methods for
+    stochastic volatility in mean models with heavy-tailed distributions,
+    using Hidden Markov Model approximations. The package relies on efficient
+    C++ implementations via Rcpp, RcppParallel, and the GNU Scientific Library (GSL).
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
