@@ -14,7 +14,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // mlogLk_Rcpp
 double mlogLk_Rcpp(arma::mat allprobs, arma::mat egamma, arma::rowvec foo, int n);
-RcppExport SEXP _holtz_mlogLk_Rcpp(SEXP allprobsSEXP, SEXP egammaSEXP, SEXP fooSEXP, SEXP nSEXP) {
+RcppExport SEXP _svHMM_mlogLk_Rcpp(SEXP allprobsSEXP, SEXP egammaSEXP, SEXP fooSEXP, SEXP nSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -28,7 +28,7 @@ END_RCPP
 }
 // pdf_n
 NumericVector pdf_n(NumericVector y);
-RcppExport SEXP _holtz_pdf_n(SEXP ySEXP) {
+RcppExport SEXP _svHMM_pdf_n(SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -39,7 +39,7 @@ END_RCPP
 }
 // pdf_s
 NumericVector pdf_s(NumericVector y, double nu);
-RcppExport SEXP _holtz_pdf_s(SEXP ySEXP, SEXP nuSEXP) {
+RcppExport SEXP _svHMM_pdf_s(SEXP ySEXP, SEXP nuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -51,7 +51,7 @@ END_RCPP
 }
 // pdf_t
 NumericVector pdf_t(NumericVector y, double df);
-RcppExport SEXP _holtz_pdf_t(SEXP ySEXP, SEXP dfSEXP) {
+RcppExport SEXP _svHMM_pdf_t(SEXP ySEXP, SEXP dfSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -63,7 +63,7 @@ END_RCPP
 }
 // pdf_vg
 NumericVector pdf_vg(NumericVector y, double nu);
-RcppExport SEXP _holtz_pdf_vg(SEXP ySEXP, SEXP nuSEXP) {
+RcppExport SEXP _svHMM_pdf_vg(SEXP ySEXP, SEXP nuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -75,15 +75,15 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_holtz_mlogLk_Rcpp", (DL_FUNC) &_holtz_mlogLk_Rcpp, 4},
-    {"_holtz_pdf_n", (DL_FUNC) &_holtz_pdf_n, 1},
-    {"_holtz_pdf_s", (DL_FUNC) &_holtz_pdf_s, 2},
-    {"_holtz_pdf_t", (DL_FUNC) &_holtz_pdf_t, 2},
-    {"_holtz_pdf_vg", (DL_FUNC) &_holtz_pdf_vg, 2},
+    {"_svHMM_mlogLk_Rcpp", (DL_FUNC) &_svHMM_mlogLk_Rcpp, 4},
+    {"_svHMM_pdf_n", (DL_FUNC) &_svHMM_pdf_n, 1},
+    {"_svHMM_pdf_s", (DL_FUNC) &_svHMM_pdf_s, 2},
+    {"_svHMM_pdf_t", (DL_FUNC) &_svHMM_pdf_t, 2},
+    {"_svHMM_pdf_vg", (DL_FUNC) &_svHMM_pdf_vg, 2},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_holtz(DllInfo *dll) {
+RcppExport void R_init_svHMM(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

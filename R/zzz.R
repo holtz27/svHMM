@@ -1,6 +1,6 @@
 #' @importFrom Rcpp evalCpp
 #' @importFrom RcppParallel RcppParallelLibs
-#' @useDynLib holtz, .registration = TRUE
+#' @useDynLib svHMM, .registration = TRUE
 NULL
 
 .onLoad <- function(libname, pkgname) {

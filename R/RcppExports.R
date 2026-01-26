@@ -2,22 +2,22 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 mlogLk_Rcpp <- function(allprobs, egamma, foo, n) {
-    .Call(`_holtz_mlogLk_Rcpp`, allprobs, egamma, foo, n)
+    .Call(`_svHMM_mlogLk_Rcpp`, allprobs, egamma, foo, n)
 }
 
 pdf_n <- function(y) {
-    .Call(`_holtz_pdf_n`, y)
+    .Call(`_svHMM_pdf_n`, y)
 }
 
 pdf_s <- function(y, nu) {
-    .Call(`_holtz_pdf_s`, y, nu)
+    .Call(`_svHMM_pdf_s`, y, nu)
 }
 
 pdf_t <- function(y, df) {
-    .Call(`_holtz_pdf_t`, y, df)
+    .Call(`_svHMM_pdf_t`, y, df)
 }
 
 pdf_vg <- function(y, nu) {
-    .Call(`_holtz_pdf_vg`, y, nu)
+    .Call(`_svHMM_pdf_vg`, y, nu)
 }
 
