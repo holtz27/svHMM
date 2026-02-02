@@ -1,8 +1,6 @@
 # svHMM
 
-**svHMM** is an R package for fast approximate Bayesian inference in  
-**Stochastic Volatility in Mean models with heavy-tailed distributions**,  
-using **Hidden Markov Models (HMMs)**.
+**svHMM** is an R package for fast approximate Bayesian inference in **Stochastic Volatility in Mean models with heavy-tailed distributions**, using **Hidden Markov Models (HMMs)**.
 
 The package is based on the methodology proposed in:
 
@@ -11,7 +9,7 @@ The package is based on the methodology proposed in:
 
 ---
 
-## 🚀 Installation
+## Installation
 
 You can install the development version from GitHub:
 
