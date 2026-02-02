@@ -15,8 +15,10 @@ You can install the development version from GitHub:
 ```r
 # install.packages("remotes")
 remotes::install_github("https://github.com/holtz27/svHMM.git")
+```
 
 ## Example
+```r
 library(svHMM)
 
 # Simulate data
@@ -38,6 +40,8 @@ theta0=list(mu0=log(var(log.ret$y)),
 
 # Fit SVM-t HMM model
 fit=svmtHMM(y=log.ret$y, m=200, gmax=5, theta_init=theta0, y0=0.2)
+```
+
 summary(fit)
 
 lv=logvol(fit, plot=TRUE)
