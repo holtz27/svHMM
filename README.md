@@ -35,7 +35,7 @@ plot(log.ret$y, type='l')
 theta0=list(mu0=log(var(log.ret$y)), 
             phi0=0.98, 
             sigma0=0.15, 
-            nu0=4, 
+            nu0=8, 
             beta0=c(mean(log.ret$y),-.01,-0.2))
 
 # Fit SVM-t HMM model
