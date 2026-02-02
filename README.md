@@ -17,7 +17,7 @@ You can install the development version from GitHub:
 remotes::install_github("https://github.com/holtz27/svHMM.git")
 ```
 
-## Example
+## Toy Example
 ```r
 library(svHMM)
 
