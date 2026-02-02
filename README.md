@@ -4,8 +4,7 @@
 
 The package is based on the methodology proposed in:
 
-> *Stochastic Volatility in Mean Models with Heavy Tails:  
-> A Fast Approximate Bayesian Inference Using Hidden Markov Models*
+> *Stochastic Volatility in Mean Models with Heavy Tails: A Fast Approximate Bayesian Inference Using Hidden Markov Models*
 
 ---
 
