@@ -13,5 +13,5 @@ The package is based on the methodology proposed in:
 You can install the development version from GitHub:
 
 ```r
-# install.packages("devtools")
-devtools::install_github("holtz27/svHMM")
+# install.packages("remotes")
+remotes::install_github("https://github.com/holtz27/svHMM.git")
