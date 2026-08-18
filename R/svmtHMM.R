@@ -302,7 +302,7 @@ logvol <- function(object, ...) {
 }
 
 #' @export
-logvol.svmtHMM <- function(object, plot=FALSE, m=object$m, ...) {
+logvol.svmtHMM <- function(object, plot=FALSE, ...) {
 
   X      <- object$X
   Weigth <- object$Weigth
@@ -318,8 +318,7 @@ logvol.svmtHMM <- function(object, plot=FALSE, m=object$m, ...) {
     y = object$y,
     y0 = object$y0,
     theta_hat = theta_hat,
-    #m = object$m,
-    m=m,
+    m = object$m,
     gmax = object$gmax,
     model = "fillallprobs_t"
   )
