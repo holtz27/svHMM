@@ -246,6 +246,7 @@ svmtHMM <- function(y, y0=0.2, m, gmax, theta_init=NULL, nIS=1e3){
       m=m,
       gmax=gmax,
       times=total_time,
+      logL=k,
       call=match.call()
     ),
     class = "svmtHMM"
