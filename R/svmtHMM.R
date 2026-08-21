@@ -34,6 +34,8 @@ fillallprobs_t <- function(x,beg,beta,nu,y){
   w = pdf_t(y=z, df=nu)
   return(w/beg)
 }
+
+#' @export
 svmt.mllk <-function(parvect,y,y0,m,gmax){
   ny = length(y)
   p = svmt.pw2pn(parvect)
@@ -64,6 +66,7 @@ svmt.mllk <-function(parvect,y,y0,m,gmax){
   lscale = mlogLk_Rcpp(allprobs,Gamma,foo,ny) #Rcpp function
   return(-lscale)
 }
+
 svmt.prior = function(parvect){
 
   # b0
