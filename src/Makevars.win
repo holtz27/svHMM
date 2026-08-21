@@ -1,4 +1,10 @@
-# Localiza as bibliotecas do RcppParallel
+# Usar C++14 exigido pelo RcppArmadillo recente
+CXX_STD = CXX14
+
+# Flags do compilador com otimização
+PKG_CXXFLAGS = -O3
+
+# Localiza as bibliotecas do RcppParallel e RcppGSL
 PKG_LIBS = $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "RcppParallel::RcppParallelLibs()") \
            $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "RcppGSL::LdFlags()") \
            $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)

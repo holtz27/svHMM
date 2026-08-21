@@ -10,6 +10,7 @@ Description: Implements fast approximate Bayesian inference methods for
     C++ implementations via Rcpp, RcppParallel, and the GNU Scientific Library (GSL).
 License: GPL-3
 Encoding: UTF-8
+Config/C++_standard: c++14
 LazyData: true
 RoxygenNote: 7.3.3
 Roxygen: list(markdown = TRUE)

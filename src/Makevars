@@ -1,14 +1,12 @@
-# Usar C++11 (ou superior) para garantir compatibilidade com RcppParallel
-CXX_STD = CXX11
+# Usar C++14 exigido pelo RcppArmadillo recente
+CXX_STD = CXX14
 
 # 1. Configurar Flags do Compilador (Headers)
-PKG_CPPFLAGS = $(shell Rscript -e "RcppParallel::RcppParallelFlags()") \
-               $(shell Rscript -e "RcppGSL::CFlags()")
+# Observação: RcppParallel é gerenciado via LinkingTo no DESCRIPTION.
+# Adicionamos -O3 para otimização de performance.
+PKG_CPPFLAGS = $(shell Rscript -e "RcppGSL::CFlags()")
+PKG_CXXFLAGS = -O3
 
 # 2. Configurar Flags do Linker (Bibliotecas)
 PKG_LIBS = $(shell Rscript -e "RcppParallel::RcppParallelLibs()") \
            $(shell Rscript -e "RcppGSL::LdFlags()") $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
-
-# Opcional: Adicionar otimização de performance
-PKG_CXXFLAGS = -O3
-
