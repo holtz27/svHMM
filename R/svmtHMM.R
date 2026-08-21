@@ -36,34 +36,46 @@ fillallprobs_t <- function(x,beg,beta,nu,y){
 }
 
 #' @export
-svmt.mllk <-function(parvect,y,y0,m,gmax){
+svmt.mllk <- function(parvect, y, y0, m, gmax){
   ny = length(y)
   p = svmt.pw2pn(parvect)
-  K = m+1
-  b=seq(-gmax,gmax,length=K)
-  bs=(b[-1]+b[-K])*0.5
-  E=p[4]+p[5]*(bs-p[4])
-  intlen <- b[2]-b[1]
-  sey = exp(bs/2)
-  Gamma=matrix(0,m,m) #06
-  for (i in 1:m){
-    Gamma[i,]=dnorm(bs, mean=E[i], sd=p[6])
-    sg = sum(Gamma[i,])
-    if(sg == 0){
+
+  K = m + 1
+  b = seq(-gmax, gmax, length = K)
+  bs = (b[-1] + b[-K]) * 0.5
+  E = p[4] + p[5] * (bs - p[4])
+  sey = exp(bs / 2)
+
+  # 1. Construção e normalização da Matriz de Transição Gamma
+  Gamma = matrix(0, m, m)
+  for (i in 1:m) {
+    Gamma[i, ] = dnorm(bs, mean = E[i], sd = p[6])
+    sg = sum(Gamma[i, ])
+    if (sg == 0) {
       stop('Built Gamma error')
-    }else{
-      Gamma[i,] = Gamma[i,]/sg
+    } else {
+      Gamma[i, ] = Gamma[i, ] / sg  # Linhas somam 1
     }
   }
-  Gamma = intlen*Gamma
-  #Gamma = Gamma/apply(Gamma,1,sum)
+  # Removido: Gamma = intlen * Gamma
 
-  xx<-y
-  yy<-c(y0,y[1:(ny-1)])
-  allprobs = outer(xx,sey,"fillallprobs_t", beta=p[1:3], nu=p[7], yy)
-  delta=dnorm(bs,p[4],p[6]/sqrt(1-p[5]^2))*intlen
-  foo = delta*allprobs[1,]
-  lscale = mlogLk_Rcpp(allprobs,Gamma,foo,ny) #Rcpp function
+  xx <- y
+  yy <- c(y0, y[1:(ny - 1)])
+  allprobs = outer(xx, sey, "fillallprobs_t", beta = p[1:3], nu = p[7], yy)
+
+  # 2. Distribuição Inicial delta (Normalizada para somar 1)
+  delta = dnorm(bs, p[4], p[6] / sqrt(1 - p[5]^2))
+  sd_delta = sum(delta)
+  if (sd_delta == 0) {
+    stop('Built delta error')
+  } else {
+    delta = delta / sd_delta        # Elementos somam 1
+  }
+  # Removido: * intlen
+
+  foo = delta * allprobs[1, ]
+  lscale = mlogLk_Rcpp(allprobs, Gamma, foo, ny) # Função Rcpp do algoritmo forward
+
   return(-lscale)
 }
 
