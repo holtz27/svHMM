@@ -46,35 +46,42 @@ svmt.mllk <- function(parvect, y, y0, m, gmax){
   E = p[4] + p[5] * (bs - p[4])
   sey = exp(bs / 2)
 
-  # 1. Construção e normalização da Matriz de Transição Gamma
+  # 1. Construção e normalização da Matriz de Transição Gamma (Estabilizada em Log)
   Gamma = matrix(0, m, m)
   for (i in 1:m) {
-    Gamma[i, ] = dnorm(bs, mean = E[i], sd = p[6])
-    sg = sum(Gamma[i, ])
-    if (sg == 0) {
+    log_gamma_i = dnorm(bs, mean = E[i], sd = p[6], log = TRUE)
+
+    # Subtração do máximo para evitar subfluxo numérico (underflow)
+    max_log_g = max(log_gamma_i)
+    gamma_i = exp(log_gamma_i - max_log_g)
+
+    sg = sum(gamma_i)
+    if (sg == 0 || is.na(sg)) {
       stop('Built Gamma error')
     } else {
-      Gamma[i, ] = Gamma[i, ] / sg  # Linhas somam 1
+      Gamma[i, ] = gamma_i / sg  # Linhas somam 1
     }
   }
-  # Removido: Gamma = intlen * Gamma
 
   xx <- y
   yy <- c(y0, y[1:(ny - 1)])
   allprobs = outer(xx, sey, "fillallprobs_t", beta = p[1:3], nu = p[7], yy)
 
-  # 2. Distribuição Inicial delta (Normalizada para somar 1)
-  delta = dnorm(bs, p[4], p[6] / sqrt(1 - p[5]^2))
-  sd_delta = sum(delta)
-  if (sd_delta == 0) {
+  # 2. Distribuição Inicial delta (Estabilizada em Log)
+  log_delta = dnorm(bs, p[4], p[6] / sqrt(1 - p[5]^2), log = TRUE)
+
+  max_log_d = max(log_delta)
+  delta_i = exp(log_delta - max_log_d)
+
+  sd_delta = sum(delta_i)
+  if (sd_delta == 0 || is.na(sd_delta)) {
     stop('Built delta error')
   } else {
-    delta = delta / sd_delta        # Elementos somam 1
+    delta = delta_i / sd_delta  # Elementos somam 1
   }
-  # Removido: * intlen
 
   foo = delta * allprobs[1, ]
-  lscale = mlogLk_Rcpp(allprobs, Gamma, foo, ny) # Função Rcpp do algoritmo forward
+  lscale = mlogLk_Rcpp(allprobs, Gamma, foo, ny) # Algoritmo forward
 
   return(-lscale)
 }
