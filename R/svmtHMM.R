@@ -1,30 +1,32 @@
 svmt.pn2pw = function(beta, mu, phi, sigma, nu){
   lbeta1 = beta[1]
-  lbeta2 =  atanh(beta[2]) #log((1+beta[2])/(1-beta[2]))
+  lbeta2 =  log((1+beta[2])/(1-beta[2]))
+  #lbeta2 =  atanh(beta[2])
   lbeta3 = beta[3]
   lmu = mu
-  lphi = atanh(phi) #log((1+phi)/(1-phi))
+  lphi = log((1+phi)/(1-phi))
+  #lphi = atanh(phi) #log((1+phi)/(1-phi))
   lsigma = log(sigma)
   # 2<nu<40
-  #lnu = log(nu-2)-log(40-nu)
-  alpha=0.1
-  lnu=(2/alpha)*atanh( (2*nu-40-2)/(40-2))
+  lnu = log(nu-2)-log(40-nu)
+  #alpha=0.1
+  #lnu=(2/alpha)*atanh( (2*nu-40-2)/(40-2))
   parvect = c(lbeta1,lbeta2,lbeta3,lmu,lphi,lsigma,lnu)
   return(parvect)
 }
 svmt.pw2pn <- function(parvect){
   beta=array(0,dim=3)
   beta[1]= parvect[1]
-  beta[2]=tanh(parvect[2]) #(exp(parvect[2])-1)/(exp(parvect[2])+1)
+  beta[2]=(exp(parvect[2])-1)/(exp(parvect[2])+1)
+  #beta[2]=tanh(parvect[2])
   beta[3]=parvect[3]
   mu=parvect[4]
-  phi=tanh(parvect[5]) #(exp(parvect[5])-1)/(exp(parvect[5])+1)
+  phi=(exp(parvect[5])-1)/(exp(parvect[5])+1)
+  #phi=tanh(parvect[5]) #(exp(parvect[5])-1)/(exp(parvect[5])+1)
   sigma=exp(parvect[6])
-  #nu = exp(parvect[7]) + 2
-  #nu = (40*exp(parvect[7])+2)/(1+exp(parvect[7]))
-  alpha=0.1
-  nu=0.5*((40-2)*tanh(0.5*alpha*parvect[7])+(40+2))
-  #return(list(beta=beta,mu=mu,phi=phi,sigma=sigma,nu=nu))
+  nu = (40*exp(parvect[7])+2)/(1+exp(parvect[7]))
+  #alpha=0.1
+  #nu=0.5*((40-2)*tanh(0.5*alpha*parvect[7])+(40+2))
   return(c(beta, mu, phi, sigma, nu))
 }
 ## function that will be used to compute 'allprobs' in mllk below
@@ -44,44 +46,38 @@ svmt.mllk <- function(parvect, y, y0, m, gmax){
   b = seq(-gmax, gmax, length = K)
   bs = (b[-1] + b[-K]) * 0.5
   E = p[4] + p[5] * (bs - p[4])
+  intlen = b[2]-b[1]
   sey = exp(bs / 2)
 
-  # 1. Construção e normalização da Matriz de Transição Gamma (Estabilizada em Log)
   Gamma = matrix(0, m, m)
-  for (i in 1:m) {
-    log_gamma_i = dnorm(bs, mean = E[i], sd = p[6], log = TRUE)
-
-    # Subtração do máximo para evitar subfluxo numérico (underflow)
-    max_log_g = max(log_gamma_i)
-    gamma_i = exp(log_gamma_i - max_log_g)
-
-    sg = sum(gamma_i)
-    if (sg == 0 || is.na(sg)) {
+  for(i in 1:m){
+    log_gamma_i=dnorm(bs, mean=E[i], sd=p[6], log=TRUE)+log(intlen)
+    max_log_g=max(log_gamma_i)
+    gamma_i=exp(log_gamma_i-max_log_g)
+    sg=sum(gamma_i)
+    if(sg == 0 || is.na(sg)) {
       stop('Built Gamma error')
-    } else {
-      Gamma[i, ] = gamma_i / sg  # Linhas somam 1
+    }else{
+      Gamma[i,]=gamma_i/sg
     }
   }
 
-  xx <- y
-  yy <- c(y0, y[1:(ny - 1)])
-  allprobs = outer(xx, sey, "fillallprobs_t", beta = p[1:3], nu = p[7], yy)
+  xx=y
+  yy=c(y0, y[1:(ny-1)])
+  allprobs=outer(xx, sey, "fillallprobs_t", beta=p[1:3], nu=p[7], yy)
 
-  # 2. Distribuição Inicial delta (Estabilizada em Log)
-  log_delta = dnorm(bs, p[4], p[6] / sqrt(1 - p[5]^2), log = TRUE)
-
+  log_delta = dnorm(bs, p[4], p[6]/sqrt(1-p[5]^2), log=TRUE)+log(intlen)
   max_log_d = max(log_delta)
-  delta_i = exp(log_delta - max_log_d)
-
+  delta_i = exp(log_delta-max_log_d)
   sd_delta = sum(delta_i)
   if (sd_delta == 0 || is.na(sd_delta)) {
     stop('Built delta error')
   } else {
-    delta = delta_i / sd_delta  # Elementos somam 1
+    delta=delta_i/sd_delta
   }
 
-  foo = delta * allprobs[1, ]
-  lscale = mlogLk_Rcpp(allprobs, Gamma, foo, ny) # Algoritmo forward
+  foo=delta*allprobs[1, ]
+  lscale=mlogLk_Rcpp(allprobs, Gamma, foo, ny)
 
   return(-lscale)
 }
@@ -89,33 +85,39 @@ svmt.mllk <- function(parvect, y, y0, m, gmax){
 svmt.prior = function(parvect){
 
   # b0
-  lprior = dnorm(parvect[1], 0, sqrt(10), log=TRUE )
+  lprior=dnorm(parvect[1], 0, 10, log=TRUE)
+
   # b1
-  x=0.5*(tanh(parvect[2])+1)
-  j=abs(0.5/cosh(parvect[2])^2)
-  lprior=lprior+dbeta(x, shape1=5, shape2=1.5, log=TRUE)+log(j)
+  #x=0.5*(tanh(parvect[2])+1)
+  #j=abs(0.5/cosh(parvect[2])^2)
+  #lprior=lprior+dbeta(x, shape1=5, shape2=1.5, log=TRUE)+log(j)
   # b2
-  lprior=lprior+dnorm(parvect[3], 0, sqrt(10), log=TRUE)
+  #lprior=lprior+dnorm(parvect[3], 0, sqrt(10), log=TRUE)
   # mu
-  lprior=lprior+dnorm(parvect[4], 0, sqrt(10), log=TRUE)
+  #lprior=lprior+dnorm(parvect[4], 0, sqrt(10), log=TRUE)
   # phi
-  x=0.5*(tanh(parvect[5])+1)
-  j=abs(0.5/cosh(parvect[5])^2)
-  lprior=lprior+dbeta(x, shape1=20, shape2=1.5, log=TRUE)+log(j)
+  #x=0.5*(tanh(parvect[5])+1)
+  #j=abs(0.5/cosh(parvect[5])^2)
+  #lprior=lprior+dbeta(x, shape1=20, shape2=1.5, log=TRUE)+log(j)
   # sigma
-  x=exp(2*parvect[6])
-  j=2*x
-  lprior=lprior+invgamma::dinvgamma(x, shape=2.5, rate=0.025, log=TRUE)+log(j)
+  #x=exp(2*parvect[6])
+  #j=2*x
+  #lprior=lprior+invgamma::dinvgamma(x, shape=2.5, rate=0.025, log=TRUE)+log(j)
   # nu
-  lprior=lprior+dnorm(parvect[7], -10, 10, log=TRUE)
+  #lprior=lprior+dnorm(parvect[7], -10, 10, log=TRUE)
 
-
-  #+ log(dnorm(parvect[2], 0.5, 10))
-  #+ log(dnorm(parvect[3], 0, 10))
-  #+ log(dnorm(parvect[4], 0, 10))
-  #+ log(dnorm(parvect[5], 4.5, 10))
-  #+ log(dnorm(parvect[6], -1.5, 10))
-  #+ log(dnorm(parvect[7], -10, 10))
+  # b1
+  lprior=lprior+dnorm(parvect[2],  0.5, 10, log=TRUE)
+  # b2
+  lprior=lprior+dnorm(parvect[3],  0,   10, log=TRUE)
+  # mu
+  lprior=lprior+dnorm(parvect[4],  0,   10, log=TRUE)
+  # phi
+  lprior=lprior+dnorm(parvect[5],  4.5, 10, log=TRUE)
+  # sigma
+  lprior=lprior+dnorm(parvect[6], -1.5, 10, log=TRUE)
+  # nu
+  lprior=lprior+dnorm(parvect[7],    0,  1, log=TRUE)
 
   return(-lprior)
 }
